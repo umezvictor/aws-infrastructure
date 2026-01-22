@@ -18,9 +18,7 @@ terraform {
 }
 
 provider "aws" {
-  region     = "eu-north-1"
-  access_key = ""
-  secret_key = ""
+  region = "eu-north-1"
 }
 
 module "s3_bucket" {
