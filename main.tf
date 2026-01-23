@@ -29,3 +29,13 @@ module "s3_bucket" {
   bucket_name = var.bucket_name
   env         = var.env
 }
+
+module "s3_bucket" {
+  source      = "./modules/s3"
+  bucket_name = var.bucket_name
+  env         = var.env
+}
+
+module "internal_alb_security_group" {
+  source = "./modules/security-group"
+}
