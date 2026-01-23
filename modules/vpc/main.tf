@@ -20,7 +20,7 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.10.1.0/24" # Choose an unused block inside your VPC
   map_public_ip_on_launch = true           # REQUIRED: Automatically assigns public IPs
-  availability_zone       = "eun1-az1"     # Pick an AZ in your region
+  availability_zone       = "eu-north-1a"  # Pick an AZ in your region
 
   tags = {
     Name = "public-subnet"
