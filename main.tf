@@ -43,7 +43,7 @@ module "internal_alb_security_group" {
 
 module "alb" {
   source            = "./modules/alb"
-  name              = "internal-alb"
+  name              = "image-resizer-alb"
   internal          = true
   security_group_id = module.internal_alb_security_group.alb_security_group
   subnet_ids = [
