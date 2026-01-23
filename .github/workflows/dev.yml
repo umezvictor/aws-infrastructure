@@ -27,11 +27,11 @@ jobs:
         id: init
         run: terraform init -var-file="dev.tfvars"
         env:
-          TF_WORKSPACE: "victorblaze22"
+          TF_WORKSPACE: "learn-terraform"
 
       - name: Terraform Workspace
         id: Workspace
-        run: terraform workspace select victorblaze22
+        run: terraform workspace select learn-terraform
 
       - name: Terraform Validate
         id: validate
