@@ -41,3 +41,16 @@ module "internal_alb_security_group" {
   cidr   = module.vpc.cidr
 }
 
+
+module "internal-alb" {
+  source = "./modules/alb"
+  #name              = "${lower(var.app_name)}-internal-alb"
+  # subnets           = module.vpc.private_subnets
+  #vpc_id            = module.vpc.vpc_id
+  # target_groups     = local.internal_alb_target_groups
+  # internal          = true
+  # listener_port     = 80
+  # listener_protocol = "HTTP"
+  # listeners         = var.internal_alb_config.listeners
+  # security_groups   = [module.internal_alb_security_group.security_group_id]
+}
