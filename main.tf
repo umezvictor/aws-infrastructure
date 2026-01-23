@@ -30,6 +30,11 @@ module "s3_bucket" {
   env         = var.env
 }
 
+module "vpc" {
+  source = "./modules/vpc"
+}
+
 module "internal_alb_security_group" {
   source = "./modules/security-group"
 }
+
