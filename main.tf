@@ -43,14 +43,7 @@ module "internal_alb_security_group" {
 
 
 module "internal-alb" {
-  source = "./modules/alb"
-  #name              = "${lower(var.app_name)}-internal-alb"
-  # subnets           = module.vpc.private_subnets
-  #vpc_id            = module.vpc.vpc_id
-  # target_groups     = local.internal_alb_target_groups
-  # internal          = true
-  # listener_port     = 80
-  # listener_protocol = "HTTP"
-  # listeners         = var.internal_alb_config.listeners
-  # security_groups   = [module.internal_alb_security_group.security_group_id]
+  source             = "./modules/alb"
+  alb_security_group = module.internal_alb_security_group.alb_security_group
+  vpc_id             = module.vpc.vpc_id
 }

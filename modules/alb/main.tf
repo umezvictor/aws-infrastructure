@@ -2,7 +2,7 @@ resource "aws_lb" "alb" {
   name               = "image-resizer-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb_sg.id]
+  security_groups    = [var.alb_security_group]
   subnets            = [for subnet in aws_subnet.public : subnet.id]
 
   enable_deletion_protection = true
