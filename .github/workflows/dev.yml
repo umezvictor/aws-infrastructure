@@ -1,42 +1,81 @@
-name: "Terraform Apply S3 Bucket"
+name: "Sandbox"
 
 on:
   push:
-    branches: [main] # Or your default branch
-
-env:
-  AWS_REGION: eu-north-1
+    branches:
+      - main
+  #pull_request:
 
 jobs:
   terraform:
-    name: "Terraform Apply"
+    name: "Terraform"
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          # terraform_version: 0.13.0:
+          cli_config_credentials_token: ${{ secrets.TERRAFORM_API_TOKEN }}
 
-      # Configure Terraform Cloud credentials
-      - name: Authenticate to Terraform Cloud
-        run: |
-          mkdir -p $HOME/.terraform.d
-          echo '{"credentials":{"app.terraform.io":{"token":"${{ secrets.TERRAFORM_API_TOKEN }}"}}}' > $HOME/.terraform.d/credentials.tfrc.json
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
 
       - name: Terraform Init
-        run: terraform init
+        id: init
+        run: terraform init -var-file="dev.tfvars"
+        env:
+          TF_WORKSPACE: "victorblaze22"
+
+      - name: Terraform Workspace
+        id: Workspace
+        run: terraform workspace select victorblaze22
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
 
       - name: Terraform Plan
-        run: terraform plan -input=false
+        id: plan
+        #if: github.event_name == 'pull_request'
+        run: terraform plan -no-color -var-file="dev.tfvars"
+        continue-on-error: true
+
+      - uses: actions/github-script@v6
+        #if: github.event_name == 'pull_request'
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -input=false
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -var-file="dev.tfvars"
