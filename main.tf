@@ -45,7 +45,7 @@ module "alb" {
   source            = "./modules/alb"
   name              = "internal-alb"
   internal          = true
-  security_group_id = module.internal_alb_security_group.security_group_id
+  security_group_id = module.internal_alb_security_group.alb_security_group
   subnet_ids = [
     module.vpc.public_subnet_id,
     module.vpc.private_subnet_id
