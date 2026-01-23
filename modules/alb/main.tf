@@ -1,19 +1,23 @@
-# resource "aws_lb" "alb" {
+# resource "aws_lb" "app" {
 #   name               = "image-resizer-alb"
 #   internal           = false
 #   load_balancer_type = "application"
-#   security_groups    = [var.alb_security_group]
-#   subnets            = var.subnets #[for subnet in aws_subnet.public : subnet.id]
-
-#   enable_deletion_protection = true
-
-#   #   access_logs {
-#   #     bucket  = aws_s3_bucket.lb_logs.id
-#   #     prefix  = "test-lb"
-#   #     enabled = true
-#   #   }
 
 #   tags = {
-#     Environment = "development"
+#     Environment = "dev"
+#     Name        = "my-app-alb"
 #   }
 # }
+
+resource "aws_lb" "internal" {
+  name               = var.name
+  internal           = var.internal
+  load_balancer_type = "application"
+  security_groups    = [var.security_group_id]
+  subnets            = var.subnet_ids
+
+  tags = {
+    Name        = var.name
+    Environment = var.environment
+  }
+}
