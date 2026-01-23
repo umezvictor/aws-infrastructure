@@ -3,9 +3,12 @@ terraform {
     organization = "victorblaze22"
 
     workspaces {
-      project = "aws-infrastructure"
-      name    = "learn-terraform"
+      tags = ["aws-infrastructure"]
     }
+    # workspaces {
+    #   project = "aws-infrastructure"
+    #   name    = "learn-terraform"
+    # }
   }
   required_providers {
     aws = {
