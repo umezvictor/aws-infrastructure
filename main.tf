@@ -43,8 +43,8 @@ module "internal_alb_security_group" {
 
 module "alb" {
   source            = "./modules/alb"
-  name              = "image-resizer-alb"
-  internal          = true
+  name              = "image-resizer-alb2"
+  internal          = false
   security_group_id = module.internal_alb_security_group.alb_security_group
   subnet_ids = [
     module.vpc.public_subnet_id,
