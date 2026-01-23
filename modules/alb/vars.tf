@@ -8,3 +8,7 @@ variable "alb_security_group" {
   description = "The security group of the alb"
   type        = string
 }
+
+variable "subnets" {
+  type = list(string)
+}
