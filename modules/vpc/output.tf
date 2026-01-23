@@ -10,6 +10,7 @@ output "cidr" {
 #   value = [for subnet in aws_subnet.public_subnet : subnet.id]
 # }
 
+#This makes it available to reference from your root module
 output "public_subnet_id" {
   value = aws_subnet.public.id
 }
