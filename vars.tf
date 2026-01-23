@@ -9,3 +9,9 @@ variable "env" {
   nullable = true
   default  = "development"
 }
+
+variable "cidr" {
+  type        = string
+  default     = "10.10.0.0/16"
+  description = "VPC CIDR"
+}

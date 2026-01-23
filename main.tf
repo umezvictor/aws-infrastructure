@@ -32,6 +32,7 @@ module "s3_bucket" {
 
 module "vpc" {
   source = "./modules/vpc"
+  cidr   = var.cidr
 }
 
 module "internal_alb_security_group" {
