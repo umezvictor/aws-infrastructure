@@ -7,11 +7,48 @@ resource "aws_vpc" "main" {
   }
 }
 
-resource "aws_subnet" "public_subnet" {
-  vpc_id     = aws_vpc.main.id
-  cidr_block = "10.0.1.0/24"
+# resource "aws_subnet" "public_subnet" {
+#   vpc_id     = aws_vpc.main.id
+#   cidr_block = "10.0.1.0/24"
+
+#   tags = {
+#     Name = "Main"
+#   }
+# }
+
+resource "aws_subnet" "public" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = "10.10.1.0/24" # Choose an unused block inside your VPC
+  map_public_ip_on_launch = true           # REQUIRED: Automatically assigns public IPs
+  availability_zone       = "eun1-az1"     # Pick an AZ in your region
 
   tags = {
-    Name = "Main"
+    Name = "public-subnet"
   }
+}
+
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "main-igw"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "main-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
 }

@@ -31,9 +31,8 @@ module "s3_bucket" {
 }
 
 module "vpc" {
-  source         = "./modules/vpc"
-  cidr           = var.cidr
-  public_subnets = var.public_subnets
+  source = "./modules/vpc"
+  cidr   = var.cidr
 }
 
 module "internal_alb_security_group" {
@@ -43,9 +42,9 @@ module "internal_alb_security_group" {
 }
 
 
-module "internal-alb" {
-  source             = "./modules/alb"
-  alb_security_group = module.internal_alb_security_group.alb_security_group
-  vpc_id             = module.vpc.vpc_id
-  subnets            = module.vpc.public_subnets
-}
+# module "internal-alb" {
+#   source             = "./modules/alb"
+#   alb_security_group = module.internal_alb_security_group.alb_security_group
+#   vpc_id             = module.vpc.vpc_id
+#   subnets            = module.vpc.public_subnets
+# }
