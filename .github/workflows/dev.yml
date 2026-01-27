@@ -27,11 +27,11 @@ jobs:
         id: init
         run: terraform init -var-file="dev.tfvars"
         env:
-          TF_WORKSPACE: "learn-terraform"
+          TF_WORKSPACE: "elasticbeanstalk-demo-infrastructure"
 
       - name: Terraform Workspace
         id: Workspace
-        run: terraform workspace select learn-terraform
+        run: terraform workspace select elasticbeanstalk-demo-infrastructure
 
       - name: Terraform Validate
         id: validate

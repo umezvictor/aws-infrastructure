@@ -1,14 +1,11 @@
 terraform {
   cloud {
+
     organization = "victorblaze22"
 
     workspaces {
-      tags = ["aws-infrastructure"]
+      name = "elasticbeanstalk-demo-infrastructure"
     }
-    # workspaces {
-    #   project = "aws-infrastructure"
-    #   name    = "learn-terraform"
-    # }
   }
   required_providers {
     aws = {
@@ -120,7 +117,7 @@ resource "aws_route53_record" "api" {
   type    = "A"
 
   alias {
-    name                   = "http://production.eba-puppwppj.eu-north-1.elasticbeanstalk.com"
+    name                   = "production.eba-drp5a2ki.eu-north-1.elasticbeanstalk.com"
     zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
     evaluate_target_health = true
   }
