@@ -18,121 +18,107 @@ terraform {
 }
 
 provider "aws" {
-  region = "eu-north-1"
-}
-
-# module "s3_bucket" {
-#   source      = "./modules/s3"
-#   bucket_name = var.bucket_name
-#   env         = var.env
-# }
-
-# module "vpc" {
-#   source = "./modules/vpc"
-#   cidr   = var.cidr
-# }
-
-# module "internal_alb_security_group" {
-#   source = "./modules/security-group"
-#   vpc_id = module.vpc.vpc_id
-#   cidr   = module.vpc.cidr
-# }
-
-# module "alb" {
-#   source            = "./modules/alb"
-#   name              = "image-resizer-alb2"
-#   internal          = false
-#   security_group_id = module.internal_alb_security_group.alb_security_group
-#   subnet_ids = [
-#     module.vpc.public_subnet_id,
-#     module.vpc.private_subnet_id
-#   ]
-#   environment = "dev"
-# }
-
-# resource "aws_s3_bucket" "deployment" {
-#   bucket = "victorblaze-deployment-bucket"
-# }
-
-# #upload file to s3 bucket - move zip folder to same directory as terraform
-# resource "aws_s3_object" "deployment-file" {
-#   bucket = "victorblaze-deployment-bucket"
-#   key    = "ebsdemoapi.zip"
-#   source = "ebsdemoapi.zip"
-#   etag   = filemd5("ebsdemoapi.zip")
-# }
-
-# #elb
-# resource "aws_elastic_beanstalk_application" "imageresizer-ebs" {
-#   name        = "imageresizerapi"
-#   description = "image-resizer-elastic beanstalk"
-
-#   appversion_lifecycle {
-#     service_role          = "arn:aws:iam::261371110098:role/aws-elasticbeanstalk-imageresizerapi-role" #aws-elasticbeanstalk-imageresizerapi-role aws_iam_role.beanstalk_service.arn
-#     max_count             = 128
-#     delete_source_from_s3 = true
-#   }
-# }
-
-# resource "aws_elastic_beanstalk_application_version" "imageresizerapi-version" {
-#   name        = "image-resizer-api-v1"
-#   application = "imageresizerapi"
-#   description = "application version created by terraform"
-#   bucket      = aws_s3_bucket.deployment.id
-#   key         = aws_s3_object.deployment-file.key
-# }
-
-# resource "aws_elastic_beanstalk_environment" "imageresizer-ebs-env" {
-#   name         = "production"
-#   application  = aws_elastic_beanstalk_application.imageresizer-ebs.name
-#   tier         = "WebServer"
-#   platform_arn = "arn:aws:elasticbeanstalk:eu-north-1::platform/.NET 8 running on 64bit Amazon Linux 2023/3.7.1"
-
-#   version_label = aws_elastic_beanstalk_application_version.imageresizerapi-version.name
-
-#   # i already created the ec2 instance and service role manually in aws console. do this within terraform
-#   # Attach EC2 instance profile (required!)
-#   setting {
-#     namespace = "aws:autoscaling:launchconfiguration"
-#     name      = "IamInstanceProfile"
-#     value     = "aws-elasticbeanstalk-ec2-role" # or whatever your instance profile is named!
-#   }
-
-#   # Attach service role (optional but recommended especially for enhanced health etc)
-#   setting {
-#     namespace = "aws:elasticbeanstalk:environment"
-#     name      = "ServiceRole"
-#     value     = "arn:aws:iam::261371110098:role/aws-elasticbeanstalk-imageresizerapi-role" # use role ARN
-#   }
-# }
-
-resource "aws_route53_zone" "eventsenta" {
-  name = "eventsenta.com"
+  region     = "eu-north-1"
+  access_key = "AKIATZWXOULJKBJXNOGJ"
+  secret_key = "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"
 }
 
 
-resource "aws_route53_record" "api" {
-  zone_id = aws_route53_zone.eventsenta.zone_id
-  name    = "api"
-  type    = "A"
-
-  alias {
-    name                   = "production.eba-drp5a2ki.eu-north-1.elasticbeanstalk.com"
-    zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
-    evaluate_target_health = true
-  }
+module "vpc" {
+  source = "./modules/vpc"
+  cidr   = var.cidr
 }
+
+module "internal_alb_security_group" {
+  source = "./modules/security-group"
+  vpc_id = module.vpc.vpc_id
+  cidr   = module.vpc.cidr
+}
+
+module "alb" {
+  source            = "./modules/alb"
+  name              = "image-resizer-load-balancer"
+  internal          = false
+  security_group_id = module.internal_alb_security_group.alb_security_group
+  subnet_ids = [
+    module.vpc.public_subnet_id,
+    module.vpc.private_subnet_id
+  ]
+  environment = "production"
+}
+
+
 
 #ssl certificate - ssl
-resource "aws_acm_certificate" "cert" {
-  domain_name       = "eventsenta.com"
-  validation_method = "DNS"
+# resource "aws_acm_certificate" "cert" {
+#   domain_name       = "eventsenta.com"
+#   validation_method = "DNS"
 
-  tags = {
-    Environment = "production"
-  }
+#   tags = {
+#     Environment = "production"
+#   }
 
-  lifecycle {
-    create_before_destroy = true
-  }
-}
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
+
+# resource "aws_route53_zone" "eventsenta" {
+#   name = "eventsenta.com"
+# }
+
+
+# resource "aws_route53_record" "api" {
+#   zone_id = aws_route53_zone.eventsenta.zone_id
+#   name    = "api"
+#   type    = "A"
+
+#   alias {
+#     name                   = "production.eba-drp5a2ki.eu-north-1.elasticbeanstalk.com"
+#     zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
+#     evaluate_target_health = true
+#   }
+# }
+
+
+
+# resource "aws_route53_record" "api" {
+#   for_each = {
+#     for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
+#       name   = dvo.resource_record_name
+#       record = dvo.resource_record_value
+#       type   = dvo.resource_record_type
+#     }
+#   }
+
+#   zone_id = aws_route53_zone.eventsenta.zone_id
+#   name    = "api"
+#   type    = "A"
+
+#   alias {
+#     name                   = "production.eba-drp5a2ki.eu-north-1.elasticbeanstalk.com"
+#     zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
+#     evaluate_target_health = true
+#   }
+
+#   allow_overwrite = true
+#   records         = [each.value.record]
+# }
+
+# resource "aws_acm_certificate_validation" "cert-validation" {
+#   certificate_arn         = aws_acm_certificate.cert.arn
+#   validation_record_fqdns = [for record in aws_route53_record.api : record.fqdn]
+# }
+
+# resource "aws_lb_listener" "front_end" {
+#   load_balancer_arn = aws_lb.front_end.arn
+#   port              = "443"
+#   protocol          = "HTTPS"
+#   ssl_policy        = "ELBSecurityPolicy-2016-08"
+#   certificate_arn   = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
+
+#   default_action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.front_end.arn
+#   }
+# }

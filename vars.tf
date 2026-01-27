@@ -7,7 +7,7 @@ variable "bucket_name" {
 variable "env" {
   type     = string
   nullable = true
-  default  = "development"
+  default  = "production"
 }
 
 variable "cidr" {
