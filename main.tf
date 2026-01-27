@@ -122,3 +122,17 @@ resource "aws_route53_record" "api" {
     evaluate_target_health = true
   }
 }
+
+#ssl certificate - ssl
+resource "aws_acm_certificate" "cert" {
+  domain_name       = "eventsenta.com"
+  validation_method = "DNS"
+
+  tags = {
+    Environment = "production"
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
