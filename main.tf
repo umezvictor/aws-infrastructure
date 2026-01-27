@@ -48,22 +48,22 @@ module "alb" {
 
 
 #ssl certificate - ssl
-# resource "aws_acm_certificate" "cert" {
-#   domain_name       = "eventsenta.com"
-#   validation_method = "DNS"
+resource "aws_acm_certificate" "cert" {
+  domain_name       = "eventsenta.com"
+  validation_method = "DNS"
 
-#   tags = {
-#     Environment = "production"
-#   }
+  tags = {
+    Environment = "production"
+  }
 
-#   lifecycle {
-#     create_before_destroy = true
-#   }
-# }
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
-# resource "aws_route53_zone" "eventsenta" {
-#   name = "eventsenta.com"
-# }
+resource "aws_route53_zone" "eventsenta" {
+  name = "eventsenta.com"
+}
 
 
 # resource "aws_route53_record" "api" {
@@ -72,7 +72,7 @@ module "alb" {
 #   type    = "A"
 
 #   alias {
-#     name                   = "production.eba-drp5a2ki.eu-north-1.elasticbeanstalk.com"
+#     name                   = "production.eba-m7mr88qr.eu-north-1.elasticbeanstalk.com"
 #     zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
 #     evaluate_target_health = true
 #   }
@@ -80,43 +80,43 @@ module "alb" {
 
 
 
-# resource "aws_route53_record" "api" {
-#   for_each = {
-#     for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
-#       name   = dvo.resource_record_name
-#       record = dvo.resource_record_value
-#       type   = dvo.resource_record_type
-#     }
-#   }
+resource "aws_route53_record" "api" {
+  for_each = {
+    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
 
-#   zone_id = aws_route53_zone.eventsenta.zone_id
-#   name    = "api"
-#   type    = "A"
+  zone_id = aws_route53_zone.eventsenta.zone_id
+  name    = "api"
+  type    = "A"
 
-#   alias {
-#     name                   = "production.eba-drp5a2ki.eu-north-1.elasticbeanstalk.com"
-#     zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
-#     evaluate_target_health = true
-#   }
+  alias {
+    name                   = "production.eba-m7mr88qr.eu-north-1.elasticbeanstalk.com"
+    zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
+    evaluate_target_health = true
+  }
 
-#   allow_overwrite = true
-#   records         = [each.value.record]
-# }
+  allow_overwrite = true
+  records         = [each.value.record]
+}
 
-# resource "aws_acm_certificate_validation" "cert-validation" {
-#   certificate_arn         = aws_acm_certificate.cert.arn
-#   validation_record_fqdns = [for record in aws_route53_record.api : record.fqdn]
-# }
+resource "aws_acm_certificate_validation" "cert-validation" {
+  certificate_arn         = aws_acm_certificate.cert.arn
+  validation_record_fqdns = [for record in aws_route53_record.api : record.fqdn]
+}
 
-# resource "aws_lb_listener" "front_end" {
-#   load_balancer_arn = aws_lb.front_end.arn
-#   port              = "443"
-#   protocol          = "HTTPS"
-#   ssl_policy        = "ELBSecurityPolicy-2016-08"
-#   certificate_arn   = "arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = "arn:aws:elasticloadbalancing:eu-north-1:261371110098:loadbalancer/app/awseb--AWSEB-IbESCyjYOAMy/f1da35e0d874c8ca"
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.cert.arn #"arn:aws:iam::187416307283:server-certificate/test_cert_rab3wuqwgja25ct3n4jdj2tzu4"
 
-#   default_action {
-#     type             = "forward"
-#     target_group_arn = aws_lb_target_group.front_end.arn
-#   }
-# }
+  default_action {
+    type             = "forward"
+    target_group_arn = "arn:aws:elasticloadbalancing:eu-north-1:261371110098:targetgroup/awseb-AWSEB-UVSQMW8COVZT/020014880dfae4e8"
+  }
+}
