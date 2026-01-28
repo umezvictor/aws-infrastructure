@@ -83,7 +83,7 @@ resource "aws_route53_record" "acm-records" {
   zone_id = aws_route53_zone.eventsenta.zone_id
 }
 
-# resource "aws_acm_certificate_validation" "acm-validation" {
-#   certificate_arn         = aws_acm_certificate.certificate.arn
-#   validation_record_fqdns = [for record in aws_route53_record.acm-records : record.fqdn]
-# }
+resource "aws_acm_certificate_validation" "acm-validation" {
+  certificate_arn         = aws_acm_certificate.certificate.arn
+  validation_record_fqdns = [for record in aws_route53_record.acm-records : record.fqdn]
+}
