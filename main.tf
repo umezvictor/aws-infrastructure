@@ -21,79 +21,69 @@ provider "aws" {
   region = "eu-north-1"
 }
 
+#ssl certificate - ssl
+# resource "aws_acm_certificate" "cert" {
+#   domain_name       = "eventsenta.com"
+#   validation_method = "DNS"
 
-module "vpc" {
-  source = "./modules/vpc"
-  cidr   = var.cidr
-}
+#   tags = {
+#     Environment = "production"
+#   }
 
-module "internal_alb_security_group" {
-  source = "./modules/security-group"
-  vpc_id = module.vpc.vpc_id
-  cidr   = module.vpc.cidr
-}
+#   lifecycle {
+#     create_before_destroy = true
+#   }
+# }
 
-module "alb" {
-  source            = "./modules/alb"
-  name              = "image-resizer-load-balancer"
-  internal          = false
-  security_group_id = module.internal_alb_security_group.alb_security_group
-  subnet_ids = [
-    module.vpc.public_subnet_id,
-    module.vpc.private_subnet_id
-  ]
-  environment = "production"
-}
+
+# resource "aws_route53_record" "hello_cert_dns" {
+#   allow_overwrite = true
+#   name =  tolist(aws_acm_certificate.cert.domain_validation_options)[0].resource_record_name
+#   records = [tolist(aws_acm_certificate.cert.domain_validation_options)[0].resource_record_value]
+#   type = tolist(aws_acm_certificate.cert.domain_validation_options)[0].resource_record_type
+#   zone_id = aws_route53_zone.eventsenta.zone_id
+#   ttl = 60
+# }
+
+# resource "aws_acm_certificate_validation" "api_cert_validation" {
+#   certificate_arn = aws_acm_certificate.cert.arn
+#   validation_record_fqdns = [aws_route53_record.hello_cert_dns.fqdn]
+# }
 
 resource "aws_route53_zone" "eventsenta" {
   name = "eventsenta.com"
 }
 
-#ssl certificate - ssl
-resource "aws_acm_certificate" "cert" {
-  domain_name       = "eventsenta.com"
-  validation_method = "DNS"
-
-  tags = {
-    Environment = "production"
-  }
+resource "aws_acm_certificate" "certificate" {
+  domain_name               = "eventsenta.com"
+  subject_alternative_names = ["www.eventsenta.com", "*.eventsenta.com"]
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
+# resource "aws_route53_record" "acm-records" {
+#   for_each = {
+#     for dvo in aws_acm_certificate.certificate.domain_validation_options : dvo.domain_name => {
+#       name   = dvo.resource_record_name
+#       record = dvo.resource_record_value
+#       type   = dvo.resource_record_type
+#     }
+#   }
 
-resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.cert.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
+#   allow_overwrite = true
+#   name            = each.value.name
+#   records = [
+#     each.value.record
+#   ]
+#   ttl     = 60
+#   type    = each.value.type
+#   zone_id = aws_route53_zone.eventsenta.zone_id
+# }
 
-  zone_id = aws_route53_zone.eventsenta.zone_id
-  name    = each.value.name
-  type    = each.value.type
-  ttl     = 60
-  records = [each.value.record]
-}
-# Wait for validation
-resource "aws_acm_certificate_validation" "cert" {
-  certificate_arn         = aws_acm_certificate.cert.arn
-  validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
-}
-
-# Alias A record for EB
-resource "aws_route53_record" "api" {
-  zone_id = aws_route53_zone.eventsenta.zone_id
-  name    = "api"
-  type    = "A"
-
-  alias {
-    name                   = "production.eba-m7mr88qr.eu-north-1.elasticbeanstalk.com"
-    zone_id                = "Z23GO28BZ5AETM" #zone id of elasticbeanstalk see https://docs.aws.amazon.com/general/latest/gr/elasticbeanstalk.html
-    evaluate_target_health = true
-  }
-}
+# resource "aws_acm_certificate_validation" "acm-validation" {
+#   certificate_arn         = aws_acm_certificate.certificate.arn
+#   validation_record_fqdns = [for record in aws_route53_record.acm-records : record.fqdn]
+# }
